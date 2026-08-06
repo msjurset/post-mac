@@ -32,7 +32,7 @@ public struct EmptyStateView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            if let url = Bundle.module.url(forResource: imageName, withExtension: "jpg"),
+            if let url = Bundle.module.url(forResource: imageName, withExtension: "png"),
                let nsImage = NSImage(contentsOf: url) {
                 Image(nsImage: nsImage)
                     .resizable()
