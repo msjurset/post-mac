@@ -1,0 +1,12 @@
+.build/
+.swiftpm/
+*.xcodeproj/
+xcuserdata/
+DerivedData/
+.DS_Store
+CLAUDE.md
+GEMINI.md
+Post.app/
+*.app
+*.dmg
+*.log
