@@ -59,18 +59,31 @@ func createMacIconBase(from image: NSImage) -> NSImage {
     image.draw(in: squircleRect, from: NSRect(origin: .zero, size: image.size), operation: .copy, fraction: 1.0)
     NSGraphicsContext.restoreGraphicsState()
     
-    // Draw prominent Apple macOS squircle specular border rim overlay
-    NSGraphicsContext.saveGraphicsState()
-    let borderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 1.5, dy: 1.5), xRadius: 184, yRadius: 184)
-    borderPath.lineWidth = 4.0
-    NSColor(white: 1.0, alpha: 0.35).setStroke()
-    borderPath.stroke()
-    
-    let innerBorderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 4.5, dy: 4.5), xRadius: 181, yRadius: 181)
-    innerBorderPath.lineWidth = 3.0
-    NSColor(white: 0.0, alpha: 0.5).setStroke()
-    innerBorderPath.stroke()
-    NSGraphicsContext.restoreGraphicsState()
+    // Draw thin white specular gradient border line around squircle
+    if let cgContext = NSGraphicsContext.current?.cgContext {
+        cgContext.saveGState()
+        let rimPath = CGPath(roundedRect: squircleRect, cornerWidth: 185, cornerHeight: 185, transform: nil)
+        cgContext.addPath(rimPath)
+        cgContext.setLineWidth(2.5)
+        cgContext.replacePathWithStrokedPath()
+        cgContext.clip()
+        
+        let colors = [
+            NSColor(white: 1.0, alpha: 0.65).cgColor,
+            NSColor(white: 1.0, alpha: 0.25).cgColor,
+            NSColor(white: 1.0, alpha: 0.08).cgColor
+        ] as CFArray
+        let locations: [CGFloat] = [0.0, 0.45, 1.0]
+        if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: locations) {
+            cgContext.drawLinearGradient(
+                gradient,
+                start: CGPoint(x: squircleRect.midX, y: squircleRect.maxY),
+                end: CGPoint(x: squircleRect.midX, y: squircleRect.minY),
+                options: []
+            )
+        }
+        cgContext.restoreGState()
+    }
 
     baseImage.unlockFocus()
     return baseImage
