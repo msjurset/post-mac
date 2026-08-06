@@ -7,9 +7,6 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Tab Picker Header
-            responsiveTabPicker
-
             // Search Bar
             FilterField(
                 placeholder: store.activeTab == .history ? "Filter (method:POST status:200)..." : "Search requests...",
@@ -17,7 +14,11 @@ struct SidebarView: View {
                 style: .plain
             )
             .padding(.horizontal, 10)
-            .padding(.bottom, 8)
+            .padding(.top, 10)
+            .padding(.bottom, 6)
+
+            // Horizontal Pill Filter Bar
+            pillTabBar
 
             Divider()
 
@@ -206,43 +207,35 @@ struct SidebarView: View {
         }
     }
 
-    private var responsiveTabPicker: some View {
-        GeometryReader { proxy in
-            let isCompact = proxy.size.width < 290
-            let isUltraCompact = proxy.size.width < 230
-            HStack(spacing: 2) {
+    private var pillTabBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
                 ForEach(PostStore.SidebarTab.allCases) { tab in
                     let isSelected = store.activeTab == tab
                     Button(action: {
-                        withAnimation(.easeInOut(duration: 0.12)) {
+                        withAnimation(.easeInOut(duration: 0.15)) {
                             store.activeTab = tab
                         }
                     }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 5) {
                             Image(systemName: tab.iconName)
                                 .font(.system(size: 11, weight: .medium))
-                            if !isUltraCompact {
-                                Text(isCompact ? tab.shortName : tab.rawValue)
-                                    .font(.caption2.weight(.medium))
-                                    .lineLimit(1)
-                            }
+                            Text(tab.rawValue)
+                                .font(.caption)
+                                .fontWeight(isSelected ? .semibold : .regular)
                         }
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, isUltraCompact ? 4 : (isCompact ? 4 : 6))
-                        .frame(maxWidth: .infinity)
-                        .background(isSelected ? Color.accentColor : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 10)
+                        .background(isSelected ? Color.accentColor : Color.secondary.opacity(0.12), in: Capsule())
                         .foregroundStyle(isSelected ? Color.white : Color.primary)
                     }
                     .focusable(false)
                     .buttonStyle(.plain)
-                    .help(tab.rawValue)
                 }
             }
-            .padding(3)
-            .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 10)
+            .padding(.bottom, 8)
         }
-        .frame(height: 30)
-        .padding(10)
     }
 
     private var curlImportSheet: some View {
