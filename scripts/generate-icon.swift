@@ -10,8 +10,8 @@ guard let sourceImage = NSImage(contentsOfFile: sourcePath) else {
     exit(1)
 }
 
-// 1. Crop to central 480x480 square around main artwork so it fills the macOS app icon tile
-let cropSize: CGFloat = 480
+// 1. Use full 1024x1024 artwork so it fills the entire macOS app icon squircle
+let cropSize: CGFloat = min(sourceImage.size.width, sourceImage.size.height)
 let cropRect = NSRect(
     x: (sourceImage.size.width - cropSize) / 2,
     y: (sourceImage.size.height - cropSize) / 2,
