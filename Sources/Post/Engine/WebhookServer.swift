@@ -42,6 +42,7 @@ public final class WebhookServer: ObservableObject {
             }
 
             listener?.start(queue: .main)
+            isRunning = true
         } catch {
             isRunning = false
         }

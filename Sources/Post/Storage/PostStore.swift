@@ -19,6 +19,7 @@ public final class PostStore: ObservableObject {
     @Published public var activeTab: SidebarTab = .requests
 
     public let webhookServer = WebhookServer()
+    private var cancellables = Set<AnyCancellable>()
 
     public enum SidebarTab: String, CaseIterable, Identifiable {
         case requests = "Requests"
@@ -39,6 +40,12 @@ public final class PostStore: ObservableObject {
 
     public init() {
         seedSampleData()
+
+        webhookServer.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
 
         webhookServer.onPayloadReceived = { [weak self] payload in
             Task { @MainActor [weak self] in

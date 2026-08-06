@@ -2,7 +2,13 @@ import SwiftUI
 
 struct WebhookServerView: View {
     @ObservedObject var store: PostStore
+    @ObservedObject var server: WebhookServer
     @State private var selectedPayloadID: UUID?
+
+    init(store: PostStore) {
+        self.store = store
+        self.server = store.webhookServer
+    }
 
     var body: some View {
         VStack(spacing: 0) {
