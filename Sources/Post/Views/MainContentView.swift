@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainContentView: View {
     @StateObject var store: PostStore
+    @State private var requestPaneHeight: CGFloat = 280
 
     init(store: PostStore = PostStore()) {
         _store = StateObject(wrappedValue: store)
@@ -24,7 +25,8 @@ struct MainContentView: View {
             if let reqBinding = Binding($store.selectedRequest) {
                 VStack(spacing: 0) {
                     RequestBuilderView(store: store, request: reqBinding)
-                    Divider()
+                        .frame(height: requestPaneHeight)
+                    DraggableHeightDivider(height: $requestPaneHeight, minHeight: 180, maxHeight: 550)
                     ResponseView(response: store.activeResponse)
                 }
             } else {

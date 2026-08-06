@@ -12,6 +12,7 @@ struct MCPInspectorView: View {
     @State private var toolResultText: String = ""
     @State private var toolResultError: Bool = false
     @State private var executionDurationMs: Double = 0.0
+    @State private var toolsListWidth: CGFloat = 260
 
     var selectedServer: MCPServer? {
         store.mcpServers.first(where: { $0.id == store.selectedMCPServerID })
@@ -86,9 +87,9 @@ struct MCPInspectorView: View {
                     }
                     .listStyle(.inset)
                 }
-                .frame(width: 260)
+                .frame(width: toolsListWidth)
 
-                Divider()
+                DraggableDivider(width: $toolsListWidth, minWidth: 180, maxWidth: 500)
 
                 // Right Tool Execution & Result Inspector
                 if let tool = toolsList.first(where: { $0.name == selectedToolName }) {
@@ -108,7 +109,7 @@ struct MCPInspectorView: View {
                                     await callTool(name: tool.name)
                                 }
                             }) {
-                                HStack {
+                                HStack(spacing: 6) {
                                     if isExecutingTool {
                                         ProgressView().controlSize(.small)
                                     } else {
@@ -116,10 +117,12 @@ struct MCPInspectorView: View {
                                     }
                                     Text("Execute Tool")
                                 }
+                                .padding(.horizontal, 4)
                             }
                             .focusable(false)
                             .buttonStyle(.borderedProminent)
-                            .tint(.purple)
+                            .tint(.green)
+                            .help("Execute Tool (JSON-RPC tools/call)")
                             .disabled(isExecutingTool)
                         }
                         .padding(12)

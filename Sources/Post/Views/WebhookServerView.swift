@@ -4,6 +4,7 @@ struct WebhookServerView: View {
     @ObservedObject var store: PostStore
     @ObservedObject var server: WebhookServer
     @State private var selectedPayloadID: UUID?
+    @State private var payloadsListWidth: CGFloat = 260
 
     init(store: PostStore) {
         self.store = store
@@ -91,10 +92,10 @@ struct WebhookServerView: View {
                         .tag(payload.id)
                     }
                 }
-                .frame(width: 260)
+                .frame(width: payloadsListWidth)
                 .listStyle(.inset)
 
-                Divider()
+                DraggableDivider(width: $payloadsListWidth, minWidth: 180, maxWidth: 500)
 
                 // Right Payload Inspector
                 if let payload = store.webhookServer.payloads.first(where: { $0.id == selectedPayloadID }) {
