@@ -4,17 +4,23 @@ import SwiftUI
 
 @MainActor
 func renderAndSave<V: View>(_ view: V, width: CGFloat, height: CGFloat, to path: String) {
+    let window = NSWindow(
+        contentRect: CGRect(x: 0, y: 0, width: width, height: height),
+        styleMask: [.titled, .fullSizeContentView],
+        backing: .buffered,
+        defer: false
+    )
+    window.appearance = NSAppearance(named: .darkAqua)
     let hostingView = NSHostingView(rootView: view)
-    hostingView.frame = CGRect(x: 0, y: 0, width: width, height: height)
+    window.contentView = hostingView
+    window.layoutIfNeeded()
     
-    hostingView.layoutSubtreeIfNeeded()
-    
-    let imageRepresentation = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds)!
-    hostingView.cacheDisplay(in: hostingView.bounds, to: imageRepresentation)
-    
-    if let pngData = imageRepresentation.representation(using: .png, properties: [:]) {
-        try? pngData.write(to: URL(fileURLWithPath: path))
-        print("Saved \(path)")
+    if let imageRepresentation = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) {
+        hostingView.cacheDisplay(in: hostingView.bounds, to: imageRepresentation)
+        if let pngData = imageRepresentation.representation(using: .png, properties: [:]) {
+            try? pngData.write(to: URL(fileURLWithPath: path))
+            print("Saved \(path)")
+        }
     }
 }
 

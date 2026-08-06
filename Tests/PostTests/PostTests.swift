@@ -111,9 +111,17 @@ struct PostTests {
 
     @MainActor
     private func renderView<V: View>(_ view: V, to path: String) {
+        let window = NSWindow(
+            contentRect: CGRect(x: 0, y: 0, width: 1000, height: 650),
+            styleMask: [.titled, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        window.appearance = NSAppearance(named: .darkAqua)
         let hostingView = NSHostingView(rootView: view)
-        hostingView.frame = CGRect(x: 0, y: 0, width: 1000, height: 650)
-        hostingView.layoutSubtreeIfNeeded()
+        window.contentView = hostingView
+        window.layoutIfNeeded()
+        
         if let imageRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) {
             hostingView.cacheDisplay(in: hostingView.bounds, to: imageRep)
             if let pngData = imageRep.representation(using: .png, properties: [:]) {
