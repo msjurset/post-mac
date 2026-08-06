@@ -38,12 +38,6 @@ public struct EmptyStateView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: 220, maxHeight: 220)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.primary.opacity(0.12), lineWidth: 1)
-                    )
-                    .shadow(color: .black.opacity(0.35), radius: 12, x: 0, y: 6)
             }
 
             VStack(spacing: 6) {
