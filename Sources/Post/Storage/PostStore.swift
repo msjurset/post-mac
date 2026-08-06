@@ -44,6 +44,14 @@ public final class PostStore: ObservableObject {
             case .history: return "clock"
             }
         }
+        public var description: String {
+            switch self {
+            case .requests: return "Build and test HTTP API endpoints"
+            case .webhooks: return "Listen and inspect incoming local HTTP webhooks"
+            case .mcp: return "Inspect Model Context Protocol (MCP) server tools"
+            case .history: return "Filter past API execution logs and response headers"
+            }
+        }
     }
 
     public init() {

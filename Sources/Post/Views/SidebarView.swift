@@ -214,6 +214,7 @@ struct SidebarView: View {
                     AnimatedTabPill(
                         title: tab.rawValue,
                         iconName: tab.iconName,
+                        description: tab.description,
                         isSelected: store.activeTab == tab,
                         action: {
                             withAnimation(.snappy(duration: 0.2)) {
@@ -269,6 +270,7 @@ struct SidebarView: View {
 struct AnimatedTabPill: View {
     let title: String
     let iconName: String
+    let description: String
     let isSelected: Bool
     let action: () -> Void
 
@@ -317,6 +319,6 @@ struct AnimatedTabPill: View {
                 isHovering = hovering
             }
         }
-        .help(title)
+        .help(description)
     }
 }
