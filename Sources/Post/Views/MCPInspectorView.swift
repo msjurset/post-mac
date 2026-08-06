@@ -109,15 +109,16 @@ struct MCPInspectorView: View {
                                     await callTool(name: tool.name)
                                 }
                             }) {
-                                HStack(spacing: 6) {
+                                Group {
                                     if isExecutingTool {
-                                        ProgressView().controlSize(.small)
+                                        ProgressView()
+                                            .controlSize(.small)
                                     } else {
                                         Image(systemName: "play.fill")
+                                            .font(.title2)
                                     }
-                                    Text("Execute Tool")
                                 }
-                                .padding(.horizontal, 4)
+                                .frame(width: 24, height: 24)
                             }
                             .focusable(false)
                             .buttonStyle(.borderedProminent)
