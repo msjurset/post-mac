@@ -9,7 +9,14 @@ A native, lightweight macOS desktop application for HTTP API testing, local webh
 ### HTTP Workbench
 Build and execute HTTP requests (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`) with custom headers, query parameters, and JSON payloads. Includes timing measurements, status badges, and 1-click cURL export/import.
 
-![HTTP Workbench](docs/assets/http_workbench.png)
+![HTTP Workbench](docs/assets/http_workbench_params.png)
+
+---
+
+### Request & Response Headers
+Inspect outgoing request headers alongside detailed server response header metadata.
+
+![Request Headers Inspection](docs/assets/request_headers.png)
 
 ---
 
@@ -27,10 +34,16 @@ Connect to local HTTP/SSE Model Context Protocol servers, discover available too
 
 ---
 
+### Tokenized Activity History
+Search past activity logs using tokenized queries (`method:POST status:200`) and inspect response bodies or headers.
+
+![Activity History](docs/assets/history_response_body.png)
+
+---
+
 ## Quick Reference
 
 * **User Manual**: Check out the comprehensive [User Guide](docs/USER_GUIDE.md) for step-by-step instructions.
-* **Token Search**: Search activity logs using tokenized queries like `method:POST status:200`.
 * **Native macOS UX**: Suppresses phantom autofill and predictive text popups via layered AppKit field editor interceptors (`FilterField`).
 
 ---
@@ -82,7 +95,7 @@ Sources/Post/
 make build
 ```
 
-### Run Unit Tests & Update Screenshots
+### Run Unit Tests
 
 ```bash
 make test
