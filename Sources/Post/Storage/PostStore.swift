@@ -225,8 +225,16 @@ public final class PostStore: ObservableObject {
             url: "https://jsonplaceholder.typicode.com/todos/1",
             headers: [KeyValueItem(key: "Accept", value: "application/json", isEnabled: true)]
         )
+        let req4 = HTTPRequest(
+            name: "Test Local Webhook Loopback",
+            method: .post,
+            url: "http://localhost:9090/webhook",
+            headers: [KeyValueItem(key: "Content-Type", value: "application/json", isEnabled: true)],
+            bodyType: .json,
+            bodyText: "{\n  \"event\": \"test.ping\",\n  \"source\": \"Post HTTP Workbench\",\n  \"timestamp\": \"2026-08-06T12:48:00Z\"\n}"
+        )
 
-        requests = [req1, req2, req3]
+        requests = [req1, req2, req3, req4]
         selectedRequestID = req1.id
 
         let tool1 = MCPToolInfo(
