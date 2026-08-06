@@ -203,10 +203,38 @@ public final class PostStore: ObservableObject {
         requests = [req1, req2, req3]
         selectedRequestID = req1.id
 
-        mcpServers = [
-            MCPServer(name: "Router MCP Server", endpoint: "http://localhost:8000/sse", type: .sse),
-            MCPServer(name: "System Helper MCP", endpoint: "http://localhost:8080/sse", type: .sse)
-        ]
-        selectedMCPServerID = mcpServers.first?.id
+        let tool1 = MCPToolInfo(
+            name: "get_system_health",
+            description: "Retrieve CPU, RAM, temperature, and uptime metrics for router node.",
+            inputSchemaJSON: "{\n  \"verbose\": true\n}"
+        )
+        let tool2 = MCPToolInfo(
+            name: "list_dhcp_leases",
+            description: "List all active client DHCP leases on the local subnet.",
+            inputSchemaJSON: "{\n  \"interface\": \"br-lan\"\n}"
+        )
+        let tool3 = MCPToolInfo(
+            name: "get_disk_space",
+            description: "Inspect filesystem disk space usage across mounted volumes.",
+            inputSchemaJSON: "{\n  \"volume\": \"/\"\n}"
+        )
+
+        let server1 = MCPServer(
+            name: "Router MCP Server",
+            endpoint: "http://localhost:8000/sse",
+            type: .sse,
+            tools: [tool1, tool2],
+            isConnected: true
+        )
+        let server2 = MCPServer(
+            name: "System Helper MCP",
+            endpoint: "http://localhost:8080/sse",
+            type: .sse,
+            tools: [tool3],
+            isConnected: false
+        )
+
+        mcpServers = [server1, server2]
+        selectedMCPServerID = server1.id
     }
 }
