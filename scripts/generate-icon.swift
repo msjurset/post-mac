@@ -53,9 +53,24 @@ func createMacIconBase(from image: NSImage) -> NSImage {
     NSGraphicsContext.restoreGraphicsState()
     
     // Clip to squircle and draw image
+    NSGraphicsContext.saveGraphicsState()
     path.addClip()
     image.draw(in: squircleRect, from: NSRect(origin: .zero, size: image.size), operation: .copy, fraction: 1.0)
+    NSGraphicsContext.restoreGraphicsState()
     
+    // Draw subtle Apple macOS squircle specular border rim overlay
+    NSGraphicsContext.saveGraphicsState()
+    let borderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 1.0, dy: 1.0), xRadius: 184, yRadius: 184)
+    borderPath.lineWidth = 3.5
+    NSColor(white: 1.0, alpha: 0.25).setStroke()
+    borderPath.stroke()
+    
+    let innerBorderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 3.0, dy: 3.0), xRadius: 182, yRadius: 182)
+    innerBorderPath.lineWidth = 2.0
+    NSColor(white: 0.0, alpha: 0.35).setStroke()
+    innerBorderPath.stroke()
+    NSGraphicsContext.restoreGraphicsState()
+
     baseImage.unlockFocus()
     return baseImage
 }
