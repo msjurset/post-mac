@@ -211,26 +211,16 @@ struct SidebarView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 ForEach(PostStore.SidebarTab.allCases) { tab in
-                    let isSelected = store.activeTab == tab
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            store.activeTab = tab
+                    AnimatedTabPill(
+                        title: tab.rawValue,
+                        iconName: tab.iconName,
+                        isSelected: store.activeTab == tab,
+                        action: {
+                            withAnimation(.snappy(duration: 0.2)) {
+                                store.activeTab = tab
+                            }
                         }
-                    }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: tab.iconName)
-                                .font(.system(size: 11, weight: .medium))
-                            Text(tab.rawValue)
-                                .font(.caption)
-                                .fontWeight(isSelected ? .semibold : .regular)
-                        }
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 10)
-                        .background(isSelected ? Color.accentColor : Color.secondary.opacity(0.12), in: Capsule())
-                        .foregroundStyle(isSelected ? Color.white : Color.primary)
-                    }
-                    .focusable(false)
-                    .buttonStyle(.plain)
+                    )
                 }
             }
             .padding(.horizontal, 10)
@@ -273,5 +263,60 @@ struct SidebarView: View {
         }
         .padding(20)
         .frame(width: 520, height: 260)
+    }
+}
+
+struct AnimatedTabPill: View {
+    let title: String
+    let iconName: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if isSelected {
+                    Text(title)
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                }
+
+                Image(systemName: iconName)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
+
+                if !isSelected && isHovering {
+                    Text(title)
+                        .font(.caption.weight(.medium))
+                        .lineLimit(1)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.85, anchor: .leading)),
+                            removal: .opacity
+                        ))
+                }
+            }
+            .padding(.horizontal, isSelected || isHovering ? 10 : 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(isSelected ? Color.accentColor.opacity(0.18) : (isHovering ? Color.primary.opacity(0.08) : Color.primary.opacity(0.05)))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 1)
+            )
+            .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
+            .fixedSize(horizontal: true, vertical: false)
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .onHover { hovering in
+            withAnimation(.snappy(duration: 0.2)) {
+                isHovering = hovering
+            }
+        }
+        .help(title)
     }
 }
