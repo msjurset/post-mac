@@ -10,8 +10,8 @@ guard let sourceImage = NSImage(contentsOfFile: sourcePath) else {
     exit(1)
 }
 
-// 1. Crop to central 680x680 square to remove any AI faux borders if source is 1024x1024
-let cropSize: CGFloat = 680
+// 1. Crop to central 480x480 square around main artwork so it fills the macOS app icon tile
+let cropSize: CGFloat = 480
 let cropRect = NSRect(
     x: (sourceImage.size.width - cropSize) / 2,
     y: (sourceImage.size.height - cropSize) / 2,
