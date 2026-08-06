@@ -10,8 +10,8 @@ guard let sourceImage = NSImage(contentsOfFile: sourcePath) else {
     exit(1)
 }
 
-// 1. Use full 1024x1024 artwork so it fills the entire macOS app icon squircle
-let cropSize: CGFloat = min(sourceImage.size.width, sourceImage.size.height)
+// 1. Inset artwork slightly (880x880) so edge background frames cleanly inside squircle
+let cropSize: CGFloat = min(sourceImage.size.width, sourceImage.size.height) * 0.88
 let cropRect = NSRect(
     x: (sourceImage.size.width - cropSize) / 2,
     y: (sourceImage.size.height - cropSize) / 2,
@@ -39,7 +39,7 @@ func createMacIconBase(from image: NSImage) -> NSImage {
     
     // Draw Shadow
     let shadow = NSShadow()
-    shadow.shadowColor = NSColor(white: 0.0, alpha: 0.4)
+    shadow.shadowColor = NSColor(white: 0.0, alpha: 0.45)
     shadow.shadowOffset = NSSize(width: 0, height: -25)
     shadow.shadowBlurRadius = 30
     
@@ -48,7 +48,8 @@ func createMacIconBase(from image: NSImage) -> NSImage {
     
     NSGraphicsContext.saveGraphicsState()
     shadow.set()
-    NSColor.white.set()
+    // Dark background base color (#121418)
+    NSColor(red: 18/255.0, green: 20/255.0, blue: 24/255.0, alpha: 1.0).set()
     path.fill()
     NSGraphicsContext.restoreGraphicsState()
     
@@ -58,16 +59,16 @@ func createMacIconBase(from image: NSImage) -> NSImage {
     image.draw(in: squircleRect, from: NSRect(origin: .zero, size: image.size), operation: .copy, fraction: 1.0)
     NSGraphicsContext.restoreGraphicsState()
     
-    // Draw subtle Apple macOS squircle specular border rim overlay
+    // Draw prominent Apple macOS squircle specular border rim overlay
     NSGraphicsContext.saveGraphicsState()
-    let borderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 1.0, dy: 1.0), xRadius: 184, yRadius: 184)
-    borderPath.lineWidth = 3.5
-    NSColor(white: 1.0, alpha: 0.25).setStroke()
+    let borderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 1.5, dy: 1.5), xRadius: 184, yRadius: 184)
+    borderPath.lineWidth = 4.0
+    NSColor(white: 1.0, alpha: 0.35).setStroke()
     borderPath.stroke()
     
-    let innerBorderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 3.0, dy: 3.0), xRadius: 182, yRadius: 182)
-    innerBorderPath.lineWidth = 2.0
-    NSColor(white: 0.0, alpha: 0.35).setStroke()
+    let innerBorderPath = NSBezierPath(roundedRect: squircleRect.insetBy(dx: 4.5, dy: 4.5), xRadius: 181, yRadius: 181)
+    innerBorderPath.lineWidth = 3.0
+    NSColor(white: 0.0, alpha: 0.5).setStroke()
     innerBorderPath.stroke()
     NSGraphicsContext.restoreGraphicsState()
 
