@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct MainContentView: View {
-    @StateObject private var store = PostStore()
+    @StateObject var store: PostStore
+
+    init(store: PostStore = PostStore()) {
+        _store = StateObject(wrappedValue: store)
+    }
 
     var body: some View {
         NavigationSplitView {

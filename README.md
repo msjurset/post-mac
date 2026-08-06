@@ -4,13 +4,33 @@ A native, lightweight macOS desktop application for HTTP API testing, local webh
 
 ---
 
-## Key Features
+## Interfaces & Features
 
-* **HTTP Workbench**: Build and execute HTTP requests (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`) with custom headers, query parameters, and JSON payloads.
-* **cURL Support**: Import raw cURL strings (`curl -X POST ...`) directly into structured requests, or export any request back to a runnable cURL command.
-* **Local Webhook Server**: Embedded network listener (`NWListener`) running on port `9090` (configurable) to capture, format, and inspect incoming webhook payloads in real time.
-* **MCP Tool Inspector**: Connect to local HTTP/SSE Model Context Protocol servers, discover available tools (`tools/list`), and execute JSON-RPC 2.0 tool calls (`tools/call`).
-* **Tokenized Search & History**: Search activity logs using tokenized queries like `method:POST status:200`.
+### HTTP Workbench
+Build and execute HTTP requests (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`) with custom headers, query parameters, and JSON payloads. Includes timing measurements, status badges, and 1-click cURL export/import.
+
+![HTTP Workbench](docs/assets/http_workbench.png)
+
+---
+
+### Local Webhook Server
+Embedded network listener (`NWListener`) running on port `9090` (configurable) to capture, format, and inspect incoming webhook payloads from local services in real time.
+
+![Webhook Listener](docs/assets/webhook_listener.png)
+
+---
+
+### MCP Tool Inspector
+Connect to local HTTP/SSE Model Context Protocol servers, discover available tools (`tools/list`), edit input parameters, and execute JSON-RPC 2.0 tool calls (`tools/call`).
+
+![MCP Inspector](docs/assets/mcp_inspector.png)
+
+---
+
+## Quick Reference
+
+* **User Manual**: Check out the comprehensive [User Guide](docs/USER_GUIDE.md) for step-by-step instructions.
+* **Token Search**: Search activity logs using tokenized queries like `method:POST status:200`.
 * **Native macOS UX**: Suppresses phantom autofill and predictive text popups via layered AppKit field editor interceptors (`FilterField`).
 
 ---
@@ -62,7 +82,7 @@ Sources/Post/
 make build
 ```
 
-### Run Unit Tests
+### Run Unit Tests & Update Screenshots
 
 ```bash
 make test
@@ -75,26 +95,6 @@ To compile the release bundle and install to `/Applications/Post.app`:
 ```bash
 make deploy
 ```
-
----
-
-## Usage Guide
-
-### 1. HTTP Workbench
-- Click **+ New Request** in the sidebar.
-- Select your HTTP method and enter the target URL.
-- Configure query params, custom headers, or body JSON in the section tabs.
-- Click **Send** (or press Enter in the URL field) to execute.
-
-### 2. Webhook Listener
-- Switch to the **Webhooks** tab in the sidebar.
-- Click **Start Listener** (default port `9090`).
-- Send HTTP POST requests to `http://localhost:9090/webhook` from your local services to inspect incoming headers and payloads.
-
-### 3. MCP Inspector
-- Switch to the **MCP Server** tab.
-- Enter your local MCP endpoint (e.g. `http://localhost:8000/sse`) and click **Connect / Fetch Tools**.
-- Select any discovered tool, edit the arguments JSON, and execute tool calls directly.
 
 ---
 

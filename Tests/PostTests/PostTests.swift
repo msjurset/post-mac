@@ -1,5 +1,7 @@
 import Testing
 import Foundation
+import SwiftUI
+import AppKit
 @testable import Post
 
 @Suite("Post App Unit Tests")
@@ -70,5 +72,53 @@ struct PostTests {
         let filtered = store.filteredHistory
         #expect(filtered.count == 1)
         #expect(filtered.first?.statusCode == 500)
+    }
+
+    @MainActor
+    @Test("Generate Documentation Screenshots")
+    func testGenerateDocsScreenshots() {
+        let fileManager = FileManager.default
+        let docsAssetsDir = "docs/assets"
+        try? fileManager.createDirectory(atPath: docsAssetsDir, withIntermediateDirectories: true)
+
+        let store1 = PostStore()
+        store1.activeTab = .requests
+        renderView(MainContentView(store: store1), to: "\(docsAssetsDir)/http_workbench.png")
+
+        let store2 = PostStore()
+        store2.activeTab = .webhooks
+        store2.webhookServer.isRunning = true
+        store2.webhookServer.port = 9090
+        store2.webhookServer.payloads = [
+            WebhookPayload(
+                timestamp: Date(),
+                method: "POST",
+                path: "/api/v1/webhook",
+                headers: [
+                    KeyValueItem(key: "Content-Type", value: "application/json"),
+                    KeyValueItem(key: "X-Signature-256", value: "sha256=a8f3b2c9d0e1f2a3...")
+                ],
+                body: "{\n  \"event\": \"payment.succeeded\",\n  \"customer_id\": \"cus_99182\",\n  \"amount\": 4900\n}",
+                clientIP: "192.168.1.105"
+            )
+        ]
+        renderView(MainContentView(store: store2), to: "\(docsAssetsDir)/webhook_listener.png")
+
+        let store3 = PostStore()
+        store3.activeTab = .mcp
+        renderView(MainContentView(store: store3), to: "\(docsAssetsDir)/mcp_inspector.png")
+    }
+
+    @MainActor
+    private func renderView<V: View>(_ view: V, to path: String) {
+        let hostingView = NSHostingView(rootView: view)
+        hostingView.frame = CGRect(x: 0, y: 0, width: 1000, height: 650)
+        hostingView.layoutSubtreeIfNeeded()
+        if let imageRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) {
+            hostingView.cacheDisplay(in: hostingView.bounds, to: imageRep)
+            if let pngData = imageRep.representation(using: .png, properties: [:]) {
+                try? pngData.write(to: URL(fileURLWithPath: path))
+            }
+        }
     }
 }
