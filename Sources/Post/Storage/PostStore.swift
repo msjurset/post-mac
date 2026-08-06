@@ -28,6 +28,14 @@ public final class PostStore: ObservableObject {
         case history = "History"
 
         public var id: String { rawValue }
+        public var shortName: String {
+            switch self {
+            case .requests: return "Requests"
+            case .webhooks: return "Webhooks"
+            case .mcp: return "MCP"
+            case .history: return "History"
+            }
+        }
         public var iconName: String {
             switch self {
             case .requests: return "network"

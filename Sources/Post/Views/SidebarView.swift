@@ -8,13 +8,7 @@ struct SidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Tab Picker Header
-            Picker("Tab", selection: $store.activeTab) {
-                ForEach(PostStore.SidebarTab.allCases) { tab in
-                    Label(tab.rawValue, systemImage: tab.iconName).tag(tab)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(10)
+            responsiveTabPicker
 
             // Search Bar
             FilterField(
@@ -210,6 +204,45 @@ struct SidebarView: View {
             .padding(10)
             .background(.bar)
         }
+    }
+
+    private var responsiveTabPicker: some View {
+        GeometryReader { proxy in
+            let isCompact = proxy.size.width < 290
+            let isUltraCompact = proxy.size.width < 230
+            HStack(spacing: 2) {
+                ForEach(PostStore.SidebarTab.allCases) { tab in
+                    let isSelected = store.activeTab == tab
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.12)) {
+                            store.activeTab = tab
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: tab.iconName)
+                                .font(.system(size: 11, weight: .medium))
+                            if !isUltraCompact {
+                                Text(isCompact ? tab.shortName : tab.rawValue)
+                                    .font(.caption2.weight(.medium))
+                                    .lineLimit(1)
+                            }
+                        }
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, isUltraCompact ? 4 : (isCompact ? 4 : 6))
+                        .frame(maxWidth: .infinity)
+                        .background(isSelected ? Color.accentColor : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                        .foregroundStyle(isSelected ? Color.white : Color.primary)
+                    }
+                    .focusable(false)
+                    .buttonStyle(.plain)
+                    .help(tab.rawValue)
+                }
+            }
+            .padding(3)
+            .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        }
+        .frame(height: 30)
+        .padding(10)
     }
 
     private var curlImportSheet: some View {
