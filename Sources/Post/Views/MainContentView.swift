@@ -50,21 +50,14 @@ struct MainContentView: View {
                     ResponseView(response: store.activeResponse)
                 }
             } else {
-                VStack(spacing: 8) {
-                    Spacer()
-                    Image(systemName: "network")
-                        .font(.largeTitle)
-                        .foregroundStyle(.tertiary)
-                    Text("No Request Selected")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Button("Create New Request") {
-                        store.createNewRequest()
-                    }
-                    .focusable(false)
-                    .buttonStyle(.borderedProminent)
-                    Spacer()
-                }
+                EmptyStateView(
+                    imageName: "empty_requests",
+                    title: "HTTP Workbench",
+                    subtitle: "Select an API request from the sidebar or click + New Request to construct headers, parameters, and payloads.",
+                    primaryActionTitle: "New Request",
+                    primaryActionIcon: "plus",
+                    primaryAction: { store.createNewRequest() }
+                )
             }
         case .webhooks:
             WebhookServerView(store: store)
@@ -85,7 +78,16 @@ struct MainContentView: View {
 
                 Divider()
 
-                ResponseView(response: store.activeResponse)
+                if let item = store.selectedHistoryItem {
+                    ResponseView(response: item.responseData)
+                } else {
+                    EmptyStateView(
+                        imageName: "empty_history",
+                        title: "Activity Execution Log",
+                        subtitle: "Select a past execution item to inspect response bodies, timing metrics, and full HTTP headers.",
+                        hintText: "Filter queries: method:POST status:200"
+                    )
+                }
             }
         }
     }

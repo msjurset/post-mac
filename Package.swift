@@ -12,7 +12,8 @@ let package = Package(
         .executableTarget(
             name: "Post",
             dependencies: [],
-            path: "Sources/Post"
+            path: "Sources/Post",
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "PostTests",

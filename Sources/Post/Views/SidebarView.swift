@@ -71,7 +71,7 @@ struct SidebarView: View {
     }
 
     private var historyListView: some View {
-        List {
+        List(selection: $store.selectedHistoryItemID) {
             ForEach(store.filteredHistory) { item in
                 HStack(spacing: 8) {
                     MethodBadge(method: HTTPMethod(rawValue: item.method) ?? .get)
@@ -90,6 +90,7 @@ struct SidebarView: View {
                     }
                 }
                 .padding(.vertical, 2)
+                .tag(item.id)
             }
         }
         .listStyle(.sidebar)

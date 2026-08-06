@@ -173,20 +173,18 @@ struct MCPInspectorView: View {
                         .padding(.bottom, 12)
                     }
                 } else {
-                    VStack(spacing: 8) {
-                        Spacer()
-                        Image(systemName: "cpu")
-                            .font(.largeTitle)
-                            .foregroundStyle(.tertiary)
-                        Text("No tool selected")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Text("Connect to an MCP server and select a tool from the list to test JSON-RPC tool calls.")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    EmptyStateView(
+                        imageName: "empty_mcp",
+                        title: "Model Context Protocol Inspector",
+                        subtitle: "Connect to an MCP server endpoint (\(endpointInput)) to inspect and execute AI tools.",
+                        primaryActionTitle: "Connect / Fetch Tools",
+                        primaryActionIcon: "arrow.clockwise",
+                        primaryAction: {
+                            Task {
+                                await fetchTools()
+                            }
+                        }
+                    )
                 }
             }
         }

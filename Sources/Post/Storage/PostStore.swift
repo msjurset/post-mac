@@ -11,6 +11,7 @@ public final class PostStore: ObservableObject {
     @Published public var errorMessage: String?
 
     @Published public var history: [HistoryItem] = []
+    @Published public var selectedHistoryItemID: UUID?
     @Published public var searchQuery: String = ""
 
     @Published public var mcpServers: [MCPServer] = []
@@ -88,6 +89,15 @@ public final class PostStore: ObservableObject {
             if let updated = newValue, let idx = requests.firstIndex(where: { $0.id == updated.id }) {
                 requests[idx] = updated
             }
+        }
+    }
+
+    public var selectedHistoryItem: HistoryItem? {
+        get {
+            history.first(where: { $0.id == selectedHistoryItemID })
+        }
+        set {
+            selectedHistoryItemID = newValue?.id
         }
     }
 

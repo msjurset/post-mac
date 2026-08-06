@@ -146,21 +146,22 @@ struct WebhookServerView: View {
                         .padding(16)
                     }
                 } else {
-                    VStack(spacing: 8) {
-                        Spacer()
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.largeTitle)
-                            .foregroundStyle(.tertiary)
-                        Text(store.webhookServer.isRunning ? "Listening for webhooks on port \(String(store.webhookServer.port))..." : "Start listener to capture webhooks")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Text("Send HTTP POST or GET requests to http://localhost:\(String(store.webhookServer.port))/webhook")
-                            .font(.caption)
-                            .monospaced()
-                            .foregroundStyle(.tertiary)
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    EmptyStateView(
+                        imageName: "empty_webhooks",
+                        title: "Local Webhook Listener",
+                        subtitle: store.webhookServer.isRunning
+                            ? "Listening for webhooks on port \(String(store.webhookServer.port))...\nSend HTTP POST or GET requests to http://localhost:\(String(store.webhookServer.port))/webhook"
+                            : "Start the local network server on port \(String(store.webhookServer.port)) to capture and inspect incoming webhooks in real time.",
+                        primaryActionTitle: store.webhookServer.isRunning ? "Stop Server" : "Start Listener",
+                        primaryActionIcon: store.webhookServer.isRunning ? "stop.fill" : "play.fill",
+                        primaryAction: {
+                            if store.webhookServer.isRunning {
+                                store.webhookServer.stop()
+                            } else {
+                                store.webhookServer.start()
+                            }
+                        }
+                    )
                 }
             }
         }
