@@ -2,18 +2,38 @@ import SwiftUI
 
 struct MainContentView: View {
     @StateObject var store: PostStore
+    @State private var sidebarWidth: CGFloat = 280
     @State private var requestPaneHeight: CGFloat = 280
+    @State private var isSidebarCollapsed: Bool = false
 
     init(store: PostStore = PostStore()) {
         _store = StateObject(wrappedValue: store)
     }
 
     var body: some View {
-        NavigationSplitView {
-            SidebarView(store: store)
-                .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 340)
-        } detail: {
+        HStack(spacing: 0) {
+            if !isSidebarCollapsed {
+                SidebarView(store: store)
+                    .frame(width: sidebarWidth)
+
+                DraggableDivider(width: $sidebarWidth, minWidth: 200, maxWidth: 420)
+            }
+
             detailView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isSidebarCollapsed.toggle()
+                    }
+                }) {
+                    Image(systemName: "sidebar.left")
+                }
+                .focusable(false)
+                .help("Toggle Sidebar")
+            }
         }
         .frame(minWidth: 900, minHeight: 600)
     }
