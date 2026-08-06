@@ -28,6 +28,8 @@ deploy: bundle
 			-e 'set iconImage to current application'\''s NSImage'\''s alloc()'\''s initWithContentsOfFile:"$(INSTALL_DIR)/$(BUNDLE)/Contents/Resources/AppIcon.icns"' \
 			-e 'current application'\''s NSWorkspace'\''s sharedWorkspace()'\''s setIcon:iconImage forFile:"$(INSTALL_DIR)/$(BUNDLE)" options:0'; \
 	fi
+	@killall Dock 2>/dev/null || true
+	@/System/Library/CoreServices/pbs -update 2>/dev/null || true
 	@echo "Deployed to $(INSTALL_DIR)/$(BUNDLE)"
 	open $(INSTALL_DIR)/$(BUNDLE)
 
