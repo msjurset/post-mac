@@ -57,6 +57,9 @@ public struct HTTPRequest: Identifiable, Codable, Hashable, Sendable {
     public var bodyText: String
     public var createdAt: Date
     public var updatedAt: Date
+    public var collectionId: UUID?
+    public var auth: AuthConfig
+    public var extractions: [ResponseExtractionRule]
 
     public init(
         id: UUID = UUID(),
@@ -71,7 +74,10 @@ public struct HTTPRequest: Identifiable, Codable, Hashable, Sendable {
         bodyType: BodyType = .none,
         bodyText: String = "",
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
+        collectionId: UUID? = nil,
+        auth: AuthConfig = AuthConfig(),
+        extractions: [ResponseExtractionRule] = []
     ) {
         self.id = id
         self.name = name
@@ -83,6 +89,30 @@ public struct HTTPRequest: Identifiable, Codable, Hashable, Sendable {
         self.bodyText = bodyText
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.collectionId = collectionId
+        self.auth = auth
+        self.extractions = extractions
+    }
+
+    enum CodingKeys: CodingKey {
+        case id, name, method, url, headers, queryParams, bodyType, bodyText, createdAt, updatedAt, collectionId, auth, extractions
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.name = try container.decodeIfPresent(String.self, forKey: .name) ?? "New Request"
+        self.method = try container.decodeIfPresent(HTTPMethod.self, forKey: .method) ?? .get
+        self.url = try container.decodeIfPresent(String.self, forKey: .url) ?? ""
+        self.headers = try container.decodeIfPresent([KeyValueItem].self, forKey: .headers) ?? []
+        self.queryParams = try container.decodeIfPresent([KeyValueItem].self, forKey: .queryParams) ?? []
+        self.bodyType = try container.decodeIfPresent(BodyType.self, forKey: .bodyType) ?? .none
+        self.bodyText = try container.decodeIfPresent(String.self, forKey: .bodyText) ?? ""
+        self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+        self.collectionId = try container.decodeIfPresent(UUID.self, forKey: .collectionId)
+        self.auth = try container.decodeIfPresent(AuthConfig.self, forKey: .auth) ?? AuthConfig()
+        self.extractions = try container.decodeIfPresent([ResponseExtractionRule].self, forKey: .extractions) ?? []
     }
 
     /// Construct full URL with query parameters appended
@@ -91,11 +121,14 @@ public struct HTTPRequest: Identifiable, Codable, Hashable, Sendable {
             return URL(string: url)
         }
         let activeParams = queryParams.filter { $0.isEnabled && !$0.key.isEmpty }
-        if !activeParams.isEmpty {
-            var existingItems = components.queryItems ?? []
-            for param in activeParams {
-                existingItems.append(URLQueryItem(name: param.key, value: param.value))
-            }
+        var existingItems = components.queryItems ?? []
+        for param in activeParams {
+            existingItems.append(URLQueryItem(name: param.key, value: param.value))
+        }
+        if auth.type == .apiKey && auth.apiKeyLocation == .query && !auth.apiKeyName.isEmpty && !auth.apiKeyValue.isEmpty {
+            existingItems.append(URLQueryItem(name: auth.apiKeyName, value: auth.apiKeyValue))
+        }
+        if !existingItems.isEmpty {
             components.queryItems = existingItems
         }
         return components.url

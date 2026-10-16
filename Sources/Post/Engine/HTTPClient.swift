@@ -10,8 +10,20 @@ public final class HTTPClient: Sendable {
     }
 
     public func execute(request: HTTPRequest) async throws -> HTTPResponse {
-        guard let url = request.fullURL else {
+        guard var url = request.fullURL else {
             throw NSError(domain: "HTTPClient", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid URL string: '\(request.url)'"])
+        }
+
+        // Apply query API key if applicable
+        if request.auth.type == .apiKey && request.auth.apiKeyLocation == .query && !request.auth.apiKeyName.isEmpty {
+            if var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+                var queryItems = components.queryItems ?? []
+                queryItems.append(URLQueryItem(name: request.auth.apiKeyName, value: request.auth.apiKeyValue))
+                components.queryItems = queryItems
+                if let modifiedURL = components.url {
+                    url = modifiedURL
+                }
+            }
         }
 
         var urlRequest = URLRequest(url: url)
@@ -22,13 +34,36 @@ public final class HTTPClient: Sendable {
             urlRequest.setValue(header.value, forHTTPHeaderField: header.key)
         }
 
+        // Apply auth headers
+        switch request.auth.type {
+        case .none:
+            break
+        case .bearer:
+            if !request.auth.bearerToken.isEmpty {
+                urlRequest.setValue("Bearer \(request.auth.bearerToken)", forHTTPHeaderField: "Authorization")
+            }
+        case .basic:
+            if !request.auth.basicUsername.isEmpty {
+                let credentials = "\(request.auth.basicUsername):\(request.auth.basicPassword)"
+                if let data = credentials.data(using: .utf8) {
+                    urlRequest.setValue("Basic \(data.base64EncodedString())", forHTTPHeaderField: "Authorization")
+                }
+            }
+        case .apiKey:
+            if request.auth.apiKeyLocation == .header && !request.auth.apiKeyName.isEmpty {
+                urlRequest.setValue(request.auth.apiKeyValue, forHTTPHeaderField: request.auth.apiKeyName)
+            }
+        }
+
         // Add body if applicable
         if request.method != .get && request.method != .head {
-            if request.bodyType == .json || request.bodyType == .raw {
+            if request.bodyType == .json || request.bodyType == .raw || request.bodyType == .formData {
                 if !request.bodyText.isEmpty {
                     urlRequest.httpBody = request.bodyText.data(using: .utf8)
                     if request.bodyType == .json && urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {
                         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    } else if request.bodyType == .formData && urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {
+                        urlRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
                     }
                 }
             }
@@ -65,20 +100,6 @@ public final class HTTPClient: Sendable {
 
     /// Convert HTTPRequest to a runnable cURL command string
     public func exportToCURL(request: HTTPRequest) -> String {
-        guard let url = request.fullURL else { return "curl '\(request.url)'" }
-        var parts: [String] = ["curl -X \(request.method.rawValue)"]
-
-        for header in request.headers where header.isEnabled && !header.key.isEmpty {
-            let escapedVal = header.value.replacingOccurrences(of: "'", with: "'\\''")
-            parts.append("-H '\(header.key): \(escapedVal)'")
-        }
-
-        if request.method != .get && request.method != .head && !request.bodyText.isEmpty {
-            let escapedBody = request.bodyText.replacingOccurrences(of: "'", with: "'\\''")
-            parts.append("-d '\(escapedBody)'")
-        }
-
-        parts.append("'\(url.absoluteString)'")
-        return parts.joined(separator: " \\\n  ")
+        return CodeGenerator.generate(for: request, format: .curl)
     }
 }

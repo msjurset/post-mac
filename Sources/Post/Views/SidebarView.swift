@@ -4,18 +4,78 @@ struct SidebarView: View {
     @ObservedObject var store: PostStore
     @State private var showingCURLImportSheet: Bool = false
     @State private var curlInputText: String = ""
+    @StateObject private var suggestionEngine = SearchSuggestionEngine()
+    @State private var pendingCursor: Int? = nil
 
     var body: some View {
         VStack(spacing: 0) {
-            // Search Bar
-            FilterField(
-                placeholder: store.activeTab == .history ? "Filter (method:POST status:200)..." : "Search requests...",
-                text: $store.searchQuery,
-                style: .plain
-            )
-            .padding(.horizontal, 10)
-            .padding(.top, 10)
-            .padding(.bottom, 6)
+            // Search Bar with Stash-Model Auto-Suggest Dropdown
+            ZStack(alignment: .topLeading) {
+                FilterField(
+                    placeholder: store.activeTab == .history ? "Filter (method:POST status:200)..." : "Search requests...",
+                    text: $store.searchQuery,
+                    onCommit: {
+                        suggestionEngine.onCommit(
+                            query: &store.searchQuery,
+                            pendingCursor: &pendingCursor,
+                            store: store
+                        )
+                    },
+                    focusTrigger: store.focusSearchTrigger,
+                    pendingCursor: $pendingCursor,
+                    style: .plain,
+                    onSelectionChanged: { loc in
+                        suggestionEngine.onCursorMoved(
+                            query: store.searchQuery,
+                            cursor: loc,
+                            store: store
+                        )
+                    },
+                    onUpArrow: {
+                        suggestionEngine.onUpArrow()
+                    },
+                    onDownArrow: {
+                        suggestionEngine.onDownArrow()
+                    },
+                    onTab: {
+                        suggestionEngine.onTab(
+                            query: &store.searchQuery,
+                            pendingCursor: &pendingCursor,
+                            store: store
+                        )
+                    },
+                    onShiftTab: {
+                        suggestionEngine.onShiftTab()
+                    }
+                )
+                .onChange(of: store.searchQuery) { _, newQuery in
+                    suggestionEngine.onQueryChanged(query: newQuery, store: store)
+                }
+                .padding(.horizontal, 10)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+            }
+            .overlay(alignment: .topLeading) {
+                if suggestionEngine.isVisible && !suggestionEngine.suggestions.isEmpty {
+                    SearchSuggestionDropdownView(
+                        engine: suggestionEngine,
+                        onSelect: { item in
+                            suggestionEngine.commit(
+                                item: item,
+                                in: &store.searchQuery,
+                                pendingCursor: &pendingCursor,
+                                store: store
+                            )
+                        }
+                    )
+                    .padding(.top, 38)
+                    .padding(.horizontal, 10)
+                    .zIndex(999)
+                }
+            }
+            .onExitCommand {
+                suggestionEngine.dismiss()
+            }
 
             // Horizontal Pill Filter Bar
             pillTabBar
@@ -41,6 +101,12 @@ struct SidebarView: View {
         }
         .sheet(isPresented: $showingCURLImportSheet) {
             curlImportSheet
+        }
+        .sheet(isPresented: $store.showingEnvironmentSheet) {
+            EnvironmentManagerSheet(store: store)
+        }
+        .sheet(isPresented: $store.showingSettingsSheet) {
+            SettingsSheet(store: store)
         }
     }
 
@@ -154,6 +220,14 @@ struct SidebarView: View {
                     }
                 }
                 .tag(server.id)
+                .contextMenu {
+                    Button("Delete Server") {
+                        store.mcpServers.removeAll(where: { $0.id == server.id })
+                        if store.selectedMCPServerID == server.id {
+                            store.selectedMCPServerID = store.mcpServers.first?.id
+                        }
+                    }
+                }
             }
         }
         .listStyle(.sidebar)
@@ -162,7 +236,56 @@ struct SidebarView: View {
     private var bottomActionInset: some View {
         VStack(spacing: 0) {
             Divider()
+
+            // Environment Indicator & Switcher
+            HStack(spacing: 6) {
+                let activeEnv = store.environments.first(where: { $0.id == store.selectedEnvironmentID })
+                Button(action: {
+                    store.showingEnvironmentSheet = true
+                }) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(activeEnv != nil ? Color.green : Color.secondary.opacity(0.5))
+                            .frame(width: 7, height: 7)
+
+                        Text(activeEnv?.name ?? "No Environment")
+                            .font(.caption)
+                            .foregroundStyle(activeEnv != nil ? Color.primary : Color.secondary)
+                            .lineLimit(1)
+
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+                .help("Manage Environments & Secrets (⌘E)")
+
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.top, 8)
+            .padding(.bottom, 2)
+
             HStack(spacing: 8) {
+                // Settings Cog in Bottom-Left
+                Button(action: {
+                    store.showingSettingsSheet = true
+                }) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24, height: 24)
+                        .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+                .help("Editor Settings: Slash Commands, Vim Mode & Syntax Highlighting (⌘,)")
+
                 if store.activeTab == .requests {
                     Button(action: {
                         store.createNewRequest()
@@ -200,12 +323,28 @@ struct SidebarView: View {
                         .tint(.accentColor)
                         .controlSize(.small)
                     }
+                } else if store.activeTab == .mcp {
+                    Button(action: {
+                        let newServer = MCPServer(
+                            name: "New MCP Server",
+                            endpoint: "http://localhost:8000/sse",
+                            type: .sse,
+                            tools: []
+                        )
+                        store.mcpServers.append(newServer)
+                        store.selectedMCPServerID = newServer.id
+                    }) {
+                        Label("New Server", systemImage: "plus")
+                    }
+                    .focusable(false)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
                 Spacer()
             }
             .padding(10)
-            .background(.bar)
         }
+        .background(.bar)
     }
 
     private var pillTabBar: some View {
@@ -239,13 +378,15 @@ struct SidebarView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            FilterField(
-                placeholder: "curl -X POST https://api.example.com/data -H 'Content-Type: application/json' -d '{\"key\":\"val\"}'",
+            VimAwareEditor(
                 text: $curlInputText,
-                multiline: true,
-                alignment: .left
+                placeholder: "curl -X POST https://api.example.com/data -H 'Content-Type: application/json' -d '{\"key\":\"val\"}'",
+                language: .bash,
+                minHeight: 120,
+                enableSlashCommands: store.enableSlashCommands,
+                enableVimEditor: store.enableVimEditor,
+                enableSyntaxHighlighting: store.enableSyntaxHighlighting
             )
-            .frame(height: 120)
 
             HStack {
                 Spacer()
@@ -264,7 +405,7 @@ struct SidebarView: View {
             }
         }
         .padding(20)
-        .frame(width: 520, height: 260)
+        .frame(minWidth: 540, idealWidth: 540, minHeight: 280)
     }
 }
 
