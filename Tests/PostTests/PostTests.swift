@@ -781,6 +781,10 @@ struct PostTests {
                 }
             }
         }
+
+        if !callouts.isEmpty && path.hasSuffix(".png") {
+            renderView(view, size: size, callouts: [], to: String(path.dropLast(4)) + "_clean.png")
+        }
     }
 
     @MainActor
